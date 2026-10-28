@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <img class="logo" src="icons/icon-48.png" alt="" />
+      <div class="titles">
+        <div class="name">小黑盒 · 清净模式</div>
+        <div class="sub" id="stateText">只留帖子，其他都走开</div>
+      </div>
+      <button class="master" id="master" role="switch" aria-checked="true" title="总开关" aria-label="清净模式总开关">
+        <span></span>
+      </button>
+    </header>
+
+    <main class="panel" id="panel">
+      <section>
+        <h2>布局</h2>
+        <div class="grid">
+          <label class="switch"
+            ><input type="checkbox" data-key="hideNav" /><span class="track"></span>顶栏导航</label
+          >
+          <label class="switch"
+            ><input type="checkbox" data-key="hideSearch" /><span class="track"></span>搜索框</label
+          >
+          <label class="switch"
+            ><input type="checkbox" data-key="hideTopics" /><span class="track"></span>话题横条</label
+          >
+          <label class="switch"
+            ><input type="checkbox" data-key="hideSidebar" /><span class="track"></span>右侧栏</label
+          >
+          <label class="switch"
+            ><input type="checkbox" data-key="hideActions" /><span class="track"></span>关注/分享</label
+          >
+          <label class="switch"
+            ><input type="checkbox" data-key="hideReply" /><span class="track"></span>回复框</label
+          >
+        </div>
+      </section>
+
+      <section>
+        <h2>阅读</h2>
+        <div class="row">
+          <span class="label">字号</span>
+          <div class="seg" data-seg="fontSize">
+            <button data-value="16">16</button>
+            <button data-value="18">18</button>
+            <button data-value="20">20</button>
+            <button data-value="22">22</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">帖子列宽</span>
+          <div class="seg" data-seg="width">
+            <button data-value="0">自适应</button>
+            <button data-value="680">680</button>
+            <button data-value="840">840</button>
+            <button data-value="960">960</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">主题</span>
+          <div class="seg" data-seg="theme">
+            <button data-value="auto">跟随</button>
+            <button data-value="light">浅色</button>
+            <button data-value="dark">夜间</button>
+            <button data-value="sepia">纸色</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="label">图片限高</span>
+          <div class="seg" data-seg="imgMax">
+            <button data-value="50">50</button>
+            <button data-value="70">70</button>
+            <button data-value="90">90</button>
+            <button data-value="0">不限</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>屏蔽</h2>
+        <label class="switch wide"
+          ><input type="checkbox" data-key="dimRead" /><span class="track"></span>看过的帖子变淡</label
+        >
+        <label class="switch wide"
+          ><input type="checkbox" data-key="hideRead" /><span class="track"></span>直接隐藏看过的帖子</label
+        >
+        <textarea id="words" rows="2" aria-label="屏蔽关键词" placeholder="屏蔽关键词，逗号或换行分隔，如：抽奖，引战，剧透"></textarea>
+        <div class="chips" id="users"></div>
+        <p class="hint">按住 <kbd>Alt</kbd> 点帖子里的作者名，就能把这个人从时间线上抹掉。</p>
+      </section>
+
+    </main>
+
+    <footer class="foot">
+      <button id="clearRead" class="link">清除已读</button>
+      <button id="reset" class="link">恢复默认</button>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

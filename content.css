@@ -1,0 +1,581 @@
+/* =========================================================================
+   小黑盒 · 清净模式
+   所有规则都以 html.xhh-on 开头，关掉总开关即完全还原，不做任何残留。
+   ========================================================================= */
+
+html.xhh-on {
+  --xhh-fs: 18px;
+  --xhh-lh: 1.9;
+  --xhh-w: 680px;
+  --xhh-img: 70vh;
+  --xhh-accent: #ff5f4d;
+}
+
+/* ---------------------------------------------------------------- 1. 去掉壳层 */
+
+/* 用“absolute + overflow hidden”而不是 display:none：
+   某些渲染环境下直接 display:none 会留下一条空白带，这个写法最稳 */
+html.xhh-on.xhh-hide-nav .nav {
+  position: absolute !important;
+  top: -400px !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 64px !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+html.xhh-on.xhh-hide-search .bbs-community__search-module {
+  display: none !important;
+}
+
+/* 导航被藏掉后，剩下的吸顶搜索条要贴到顶 */
+html.xhh-on.xhh-hide-nav .bbs-community__search-module {
+  top: 0 !important;
+}
+
+html.xhh-on.xhh-hide-topics .bbs-home__topic-list-wrapper {
+  display: none !important;
+}
+
+html.xhh-on.xhh-hide-sidebar .cpt-right-side {
+  display: none !important;
+}
+
+html.xhh-on.xhh-hide-actions .list-cotent__operation-btn,
+html.xhh-on.xhh-hide-actions .page-header__other,
+html.xhh-on.xhh-hide-actions .page-header__follow-btn,
+html.xhh-on.xhh-hide-actions .link-user__follow-btn {
+  display: none !important;
+}
+
+html.xhh-on.xhh-hide-reply .hb-bbs-link__reply-target {
+  display: none !important;
+}
+
+/* JS 识别出来的浮层推广 / 下载条 */
+html.xhh-on .xhh-kill {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------- 2. 版心 */
+
+/* 信息流：宽度跟 --xhh-w（默认自适应 min(100vw-48px, 960px)） */
+html.xhh-on #page-bbs-community {
+  max-width: var(--xhh-w) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* 详情页：真·阅读场景，行宽纪律独立（约 40 字/行），不吃版心设置 */
+html.xhh-on #page-bbs-link {
+  max-width: min(calc(100vw - 48px), 760px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+html.xhh-on #page-bbs-community > .content,
+html.xhh-on #page-bbs-link > .content {
+  display: block !important;
+}
+
+html.xhh-on #page-bbs-community > .content > .list,
+html.xhh-on #page-bbs-link > .content > .list {
+  width: 100% !important;
+  max-width: var(--xhh-w) !important;
+  margin: 0 auto !important;
+}
+
+html.xhh-on #page-bbs-community {
+  padding-top: 12px !important;
+}
+
+/* ---------------------------------------------------------------- 3. 正文排版 */
+
+html.xhh-on .bbs-content__title {
+  font-size: calc(var(--xhh-fs) * 1.04) !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+}
+
+html.xhh-on .bbs-content__content {
+  font-size: var(--xhh-fs) !important;
+  line-height: var(--xhh-lh) !important;
+  letter-spacing: 0.01em;
+  color: #33383f;
+}
+
+html.xhh-on .bbs-content__content * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+/* 帖子详情 */
+html.xhh-on .link-section-title {
+  font-size: calc(var(--xhh-fs) * 1.32) !important;
+  line-height: 1.42 !important;
+  letter-spacing: 0.01em;
+}
+
+html.xhh-on .hb-article .text,
+html.xhh-on .hb-article .line,
+html.xhh-on .hb-article li {
+  font-size: var(--xhh-fs) !important;
+  line-height: var(--xhh-lh) !important;
+  letter-spacing: 0.012em;
+}
+
+html.xhh-on .hb-article .sub-title {
+  font-size: calc(var(--xhh-fs) * 1.08) !important;
+  line-height: 1.6 !important;
+  margin-top: 1.6em !important;
+}
+
+/* 评论：比正文略小，保持主次 */
+html.xhh-on .comment-item__content,
+html.xhh-on .children-item__comment-content {
+  font-size: calc(var(--xhh-fs) * 0.9) !important;
+  line-height: 1.75 !important;
+}
+
+/* 行内代码、引用等不要因为强制字号而挤成一团 */
+html.xhh-on .hb-article code,
+html.xhh-on .hb-article pre {
+  font-size: calc(var(--xhh-fs) * 0.88) !important;
+}
+
+/* ---------------------------------------------------------------- 4. 图片 */
+
+html.xhh-on .hb-article img,
+html.xhh-on .post__content img,
+html.xhh-on .comment-item__content img,
+html.xhh-on .children-item__comment-content img {
+  max-height: var(--xhh-img) !important;
+  width: auto !important;
+  max-width: 100% !important;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+html.xhh-on .bbs-content__imgs-wrapper img {
+  max-height: var(--xhh-img) !important;
+}
+
+html.xhh-on.xhh-no-imgcap .hb-article img,
+html.xhh-on.xhh-no-imgcap .post__content img,
+html.xhh-on.xhh-no-imgcap .comment-item__content img {
+  max-height: none !important;
+}
+
+/* ---------------------------------------------------------------- 5. 已读 / 屏蔽 / 光标 */
+
+html.xhh-on .bbs-home__content-item {
+  transition: opacity 0.18s ease, background-color 0.18s ease;
+}
+
+html.xhh-on.xhh-dim-read .bbs-home__content-item[data-xhh-read="1"] {
+  opacity: 0.38;
+}
+
+html.xhh-on.xhh-dim-read .bbs-home__content-item[data-xhh-read="1"]:hover {
+  opacity: 1;
+}
+
+html.xhh-on.xhh-hide-read .bbs-home__content-item[data-xhh-read="1"] {
+  display: none !important;
+}
+
+html.xhh-on .bbs-home__content-item[data-xhh-blocked="1"] {
+  display: none !important;
+}
+
+html.xhh-on .bbs-home__content-item.xhh-cursor {
+  background: #fff !important;
+  box-shadow: 0 0 0 2px var(--xhh-accent), 0 1px 3px rgba(16, 24, 40, 0.06) !important;
+}
+
+/* ------------------------------------------------- 空时间线提示 */
+
+html.xhh-on .xhh-empty-note {
+  padding: 36px 16px 46px;
+  text-align: center;
+  color: #9aa1a9;
+  font-size: 13.5px;
+  line-height: 1.9;
+}
+
+html.xhh-on .xhh-empty-note .peek {
+  margin-left: 10px;
+  padding: 4px 13px;
+  border: 1px solid #e3e6ea;
+  border-radius: 999px;
+  background: #fff;
+  color: #6a7076;
+  font-size: 12.5px;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+html.xhh-on .xhh-empty-note .peek:hover {
+  color: var(--xhh-accent);
+  border-color: var(--xhh-accent);
+}
+
+/* 「暂时显示」状态：看过的帖子半透明回来 */
+html.xhh-on.xhh-peek .bbs-home__content-item[data-xhh-read="1"] {
+  display: block !important;
+  opacity: 0.42;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .xhh-empty-note {
+  color: #6f7780;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .xhh-empty-note .peek {
+  background: #1a1d22;
+  border-color: #2a2f36;
+  color: #9aa1a9;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .xhh-empty-note .peek:hover {
+  color: var(--xhh-accent);
+  border-color: var(--xhh-accent);
+}
+
+html.xhh-on ::selection {
+  background: rgba(255, 95, 77, 0.24);
+}
+
+/* ---------------------------------------------------------------- 6. 夜间 */
+
+html.xhh-on[data-xhh-theme="dark"] {
+  color-scheme: dark;
+  background: #0e1013 !important;
+}
+
+html.xhh-on[data-xhh-theme="sepia"] {
+  background: #eee7d8 !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] body {
+  background: #0e1013 !important;
+  color: #e3e6ea !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .nav {
+  background: rgba(14, 16, 19, 0.94) !important;
+  border-bottom-color: #202429 !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .nav-link,
+html.xhh-on[data-xhh-theme="dark"] .nav-links button {
+  color: #b7bec7 !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .hb-cpt__scroll-list,
+html.xhh-on[data-xhh-theme="dark"] .bbs-home__content-list,
+html.xhh-on[data-xhh-theme="dark"] .bbs-community-hot-topic,
+html.xhh-on[data-xhh-theme="dark"] .right-side-default,
+html.xhh-on[data-xhh-theme="dark"] .qr-section,
+html.xhh-on[data-xhh-theme="dark"] .app-link-item,
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-link,
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-link__header,
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-link__container,
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-link__content,
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-post,
+html.xhh-on[data-xhh-theme="dark"] .link-comment {
+  background: #15181c !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-home__feed-splitline,
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-link__content {
+  border-color: #23272d !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .bbs-content__title,
+html.xhh-on[data-xhh-theme="dark"] .link-section-title,
+html.xhh-on[data-xhh-theme="dark"] .hb-article .sub-title {
+  color: #eef1f4 !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .bbs-content__content,
+html.xhh-on[data-xhh-theme="dark"] .hb-article .text,
+html.xhh-on[data-xhh-theme="dark"] .hb-article li,
+html.xhh-on[data-xhh-theme="dark"] .hb-article .line,
+html.xhh-on[data-xhh-theme="dark"] .comment-item__content,
+html.xhh-on[data-xhh-theme="dark"] .children-item__comment-content {
+  color: #c9cfd6 !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .list-content__username,
+html.xhh-on[data-xhh-theme="dark"] .page-header__username,
+html.xhh-on[data-xhh-theme="dark"] .link-user__username,
+html.xhh-on[data-xhh-theme="dark"] .link-data__time,
+html.xhh-on[data-xhh-theme="dark"] .link-data__ip,
+html.xhh-on[data-xhh-theme="dark"] .info-box__create-time,
+html.xhh-on[data-xhh-theme="dark"] .children-item__other-info,
+html.xhh-on[data-xhh-theme="dark"] .footer-info,
+html.xhh-on[data-xhh-theme="dark"] .bbs-content__image-cnt {
+  color: #8b949e !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .hb-cpt__image--default {
+  background: #1e2227 !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .el-input__wrapper {
+  background: #1a1d22 !important;
+  box-shadow: 0 0 0 1px #2a2f36 inset !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .el-input__inner {
+  color: #dfe3e8 !important;
+}
+
+html.xhh-on[data-xhh-theme="dark"] .link-reply,
+html.xhh-on[data-xhh-theme="dark"] .hb-bbs-link__reply-target {
+  background: #15181c !important;
+}
+
+/* ---------------------------------------------------------------- 7. 纸色 */
+
+html.xhh-on[data-xhh-theme="sepia"] body {
+  background: #eee7d8 !important;
+  color: #3b342a !important;
+}
+
+html.xhh-on[data-xhh-theme="sepia"] .nav {
+  background: rgba(238, 231, 216, 0.94) !important;
+  border-bottom-color: #ddd3bf !important;
+}
+
+html.xhh-on[data-xhh-theme="sepia"] .hb-cpt__scroll-list,
+html.xhh-on[data-xhh-theme="sepia"] .bbs-home__content-list,
+html.xhh-on[data-xhh-theme="sepia"] .bbs-community-hot-topic,
+html.xhh-on[data-xhh-theme="sepia"] .right-side-default,
+html.xhh-on[data-xhh-theme="sepia"] .qr-section,
+html.xhh-on[data-xhh-theme="sepia"] .app-link-item,
+html.xhh-on[data-xhh-theme="sepia"] .hb-bbs-link,
+html.xhh-on[data-xhh-theme="sepia"] .hb-bbs-link__header,
+html.xhh-on[data-xhh-theme="sepia"] .hb-bbs-link__container,
+html.xhh-on[data-xhh-theme="sepia"] .hb-bbs-link__content,
+html.xhh-on[data-xhh-theme="sepia"] .hb-bbs-post,
+html.xhh-on[data-xhh-theme="sepia"] .link-comment {
+  background: #f7f1e4 !important;
+}
+
+html.xhh-on[data-xhh-theme="sepia"] .bbs-content__title,
+html.xhh-on[data-xhh-theme="sepia"] .link-section-title,
+html.xhh-on[data-xhh-theme="sepia"] .bbs-content__content,
+html.xhh-on[data-xhh-theme="sepia"] .hb-article .text,
+html.xhh-on[data-xhh-theme="sepia"] .hb-article .sub-title,
+html.xhh-on[data-xhh-theme="sepia"] .hb-article li,
+html.xhh-on[data-xhh-theme="sepia"] .comment-item__content,
+html.xhh-on[data-xhh-theme="sepia"] .children-item__comment-content {
+  color: #3b342a !important;
+}
+
+html.xhh-on[data-xhh-theme="sepia"] .list-content__username,
+html.xhh-on[data-xhh-theme="sepia"] .page-header__username,
+html.xhh-on[data-xhh-theme="sepia"] .footer-info {
+  color: #7a6d59 !important;
+}
+
+html.xhh-on[data-xhh-theme="sepia"] .hb-cpt__image--default {
+  background: #e6dcc8 !important;
+}
+
+/* ---------------------------------------------------------------- 8. 卡片化美化
+   不做毛坯房：时间线拆成独立卡片，配自定义顶栏，成为完整的阅读界面 */
+
+html.xhh-on {
+  --xhh-card-bg: #ffffff;
+  --xhh-card-line: rgba(16, 24, 40, 0.06);
+  --xhh-card-hover: 0 2px 6px rgba(16, 24, 40, 0.08), 0 18px 36px -14px rgba(16, 24, 40, 0.16);
+  --xhh-topbar-bg: rgba(255, 255, 255, 0.96);
+  --xhh-topbar-fg: #2b2f34;
+  --xhh-topbar-line: rgba(16, 24, 40, 0.07);
+}
+
+html.xhh-on[data-xhh-theme="dark"] {
+  --xhh-card-bg: #15181c;
+  --xhh-card-line: rgba(255, 255, 255, 0.07);
+  --xhh-card-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 18px 36px -14px rgba(0, 0, 0, 0.55);
+  --xhh-topbar-bg: rgba(18, 20, 24, 0.97);
+  --xhh-topbar-fg: #e3e6ea;
+  --xhh-topbar-line: rgba(255, 255, 255, 0.08);
+}
+
+html.xhh-on[data-xhh-theme="sepia"] {
+  --xhh-card-bg: #f7f1e4;
+  --xhh-card-line: rgba(90, 74, 50, 0.12);
+  --xhh-card-hover: 0 2px 6px rgba(90, 74, 50, 0.1), 0 18px 36px -14px rgba(90, 74, 50, 0.18);
+  --xhh-topbar-bg: rgba(238, 231, 216, 0.97);
+  --xhh-topbar-fg: #3b342a;
+  --xhh-topbar-line: rgba(90, 74, 50, 0.14);
+}
+
+/* 底板透明，让卡片自己当主角 */
+html.xhh-on .hb-cpt__scroll-list.hb-bbs-home,
+html.xhh-on .bbs-home__content-list {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* 时间线卡片 */
+html.xhh-on .bbs-home__content-item {
+  background: var(--xhh-card-bg) !important;
+  border-radius: 14px !important;
+  margin-bottom: 14px !important;
+  padding: 16px 18px 12px !important;
+  box-shadow: 0 1px 2px var(--xhh-card-line), 0 10px 28px -16px var(--xhh-card-line) !important;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.18s ease !important;
+}
+
+html.xhh-on .bbs-home__content-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--xhh-card-hover) !important;
+}
+
+/* 掐掉站点自带的分隔线和悬停底色 */
+html.xhh-on .bbs-home__content-item.hb-bbs-home__feed-splitline {
+  border: 0 !important;
+}
+
+/* 图片圆角 */
+html.xhh-on .bbs-content__imgs-wrapper .hb-cpt__image {
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+/* 作者行与标题的呼吸感 */
+html.xhh-on .bbs-content__title {
+  margin-top: 8px !important;
+}
+
+html.xhh-on .bbs-new-style-bottom {
+  padding-top: 6px !important;
+}
+
+html.xhh-on .bbs-new-style-bottom__comment,
+html.xhh-on .bbs-new-style-bottom__like {
+  opacity: 0.62;
+}
+
+/* 话题横条：拼成一张小卡 */
+html.xhh-on.xhh-hide-topics .bbs-home__topic-list-wrapper {
+  display: none !important;
+}
+
+html.xhh-on:not(.xhh-hide-topics) .bbs-home__topic-list-wrapper {
+  background: var(--xhh-card-bg) !important;
+  border-radius: 14px !important;
+  margin: 0 0 14px !important;
+  box-shadow: 0 1px 2px var(--xhh-card-line) !important;
+}
+
+/* 顶栏让位 + 呼吸空间 */
+html.xhh-on.xhh-hide-nav #page-bbs-community {
+  padding-top: 62px !important;
+}
+
+html.xhh-on.xhh-hide-nav .bbs-community__search-module {
+  top: 44px !important;
+}
+
+/* 详情页：文章卡 + 评论卡 */
+html.xhh-on .hb-bbs-link__container,
+html.xhh-on .hb-bbs-link__content {
+  background: transparent !important;
+}
+
+html.xhh-on .hb-bbs-post {
+  background: var(--xhh-card-bg) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 2px var(--xhh-card-line), 0 10px 28px -16px var(--xhh-card-line) !important;
+  padding: 6px 26px 18px !important;
+}
+
+html.xhh-on .link-comment {
+  background: var(--xhh-card-bg) !important;
+  border-radius: 14px !important;
+  margin-top: 14px !important;
+  padding: 4px 26px 12px !important;
+  box-shadow: 0 1px 2px var(--xhh-card-line) !important;
+}
+
+html.xhh-on .hb-bbs-link__header {
+  background: var(--xhh-topbar-bg) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* ---------------------------------------------------------------- 9. 自定义顶栏 */
+
+#xhh-topbar-host {
+  display: none;
+}
+
+html.xhh-on.xhh-hide-nav #xhh-topbar-host {
+  display: block;
+}
+
+/* 站点自带的伪元素垫底/渐隐条：dark 下会发白，light 下也多余，全清 */
+html.xhh-on #page-bbs-community::before,
+html.xhh-on #page-bbs-community::after,
+html.xhh-on #page-bbs-link::before,
+html.xhh-on #page-bbs-link::after,
+html.xhh-on main.list::before,
+html.xhh-on main.list::after,
+html.xhh-on .bbs-home__topic-list-wrapper::after,
+html.xhh-on .bbs-home__content-item.hb-bbs-home__feed-splitline::after,
+html.xhh-on .bbs-home__topic-list-wrapper.hb-bbs-home__splitline::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------- 10. 两栏布局
+   右侧栏开关打开时：整页回到两栏阅读布局，而不是把侧栏排到页面最底部 */
+
+html.xhh-on:not(.xhh-hide-sidebar) #page-bbs-community,
+html.xhh-on:not(.xhh-hide-sidebar) #page-bbs-link {
+  max-width: 1080px !important;
+}
+
+html.xhh-on:not(.xhh-hide-sidebar) #page-bbs-community > .content {
+  display: flex !important;
+  gap: 16px !important;
+  align-items: flex-start;
+}
+
+html.xhh-on:not(.xhh-hide-sidebar) #page-bbs-community > .content > main.list {
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+html.xhh-on:not(.xhh-hide-sidebar) .cpt-right-side {
+  display: block !important;
+  width: 340px !important;
+  flex: 0 0 340px !important;
+  position: sticky !important;
+  top: 62px !important;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+html.xhh-on:not(.xhh-hide-sidebar) .bbs-community-hot-topic,
+html.xhh-on:not(.xhh-hide-sidebar) .right-side-default {
+  background: var(--xhh-card-bg) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 2px var(--xhh-card-line) !important;
+}
+
+/* 搜索框开着时：贴在顶栏下面，不顶到最顶 */
+html.xhh-on.xhh-hide-nav:not(.xhh-hide-search) #page-bbs-community {
+  padding-top: 62px !important;
+}
