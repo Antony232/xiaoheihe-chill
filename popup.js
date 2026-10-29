@@ -106,6 +106,24 @@
     }, 260);
   });
 
+  $('#reload').addEventListener('click', async () => {
+    const btn = $('#reload');
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab && /xiaoheihe\.cn/.test(tab.url || '')) {
+        await chrome.tabs.reload(tab.id, { bypassCache: false });
+        btn.textContent = '已刷新';
+      } else {
+        btn.textContent = '先打开小黑盒';
+      }
+    } catch (_) {
+      btn.textContent = '刷新失败';
+    }
+    setTimeout(() => (btn.textContent = '刷新页面'), 1400);
+    // 刷新后弹窗使命已尽，主动关掉，别挡着页面
+    setTimeout(() => window.close(), 600);
+  });
+
   $('#clearRead').addEventListener('click', async () => {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

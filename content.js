@@ -12,6 +12,9 @@
   const DEFAULTS = globalThis.XHH_DEFAULTS || {};
   const READ_KEY = 'xhh.read.v1';
   const READ_MAX = 2500;
+  const CARD_SEL = '.bbs-home__content-item';
+  // 推广层关键词：先做字符串预筛，命中才去碰 getComputedStyle（贵）
+  const NAG_RE = /下载|打开APP|打开App|扫码/;
 
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -129,47 +132,103 @@
     return m ? m[1] : '';
   }
 
+  let blockWords = [];
+  let blockUsers = [];
+
+  function refreshRules() {
+    blockWords = (settings.blockWords || [])
+      .map((w) => String(w).trim().toLowerCase())
+      .filter(Boolean);
+    blockUsers = (settings.blockUsers || []).map((u) => String(u).trim()).filter(Boolean);
+  }
+
+  /* 单张卡：已读标记 + 屏蔽判定。增量调用，只看这一张，不碰别人 */
+  function applyCard(card) {
+    const id = postIdOf(card);
+    if (id && readMap()[id]) card.dataset.xhhRead = '1';
+    else delete card.dataset.xhhRead;
+
+    if (!settings.on) {
+      delete card.dataset.xhhBlocked;
+      return;
+    }
+
+    // 没有任何屏蔽规则时，别白读一遍标题正文
+    if (!blockWords.length && !blockUsers.length) {
+      delete card.dataset.xhhBlocked;
+      return;
+    }
+
+    const author = text(card.querySelector('.list-content__username'));
+    let blocked = blockUsers.includes(author);
+
+    if (!blocked && blockWords.length) {
+      const hay = `${text(card.querySelector('.bbs-content__title'))}\n${text(
+        card.querySelector('.bbs-content__content')
+      )}`.toLowerCase();
+      blocked = blockWords.some((w) => hay.includes(w));
+    }
+
+    if (blocked) card.dataset.xhhBlocked = '1';
+    else delete card.dataset.xhhBlocked;
+  }
+
+  /* 空时间线提示的计数：一次选择器拿完，逐卡统计太贵 */
+  function updateEmptyNote() {
+    if (!settings.on) {
+      dropEmptyNote();
+      return;
+    }
+    const total = document.querySelectorAll(CARD_SEL).length;
+    const hiddenRead = settings.hideRead
+      ? document.querySelectorAll(`${CARD_SEL}[data-xhh-read="1"]`).length
+      : 0;
+    const hiddenBlocked = document.querySelectorAll(`${CARD_SEL}[data-xhh-blocked="1"]`).length;
+    renderEmptyNote(total, hiddenRead, hiddenBlocked);
+  }
+
+  function dropEmptyNote() {
+    if (emptyNote) {
+      emptyNote.remove();
+      emptyNote = null;
+    }
+  }
+
+  /* 全量扫描：设置变更 / 首次进入时才用 */
   function scan() {
     if (!document.body) return;
+    refreshRules();
+    document.querySelectorAll(CARD_SEL).forEach(applyCard);
+    updateEmptyNote();
+    markDetailRead();
+  }
 
-    const words = (settings.blockWords || []).map((w) => String(w).trim()).filter(Boolean);
-    const users = (settings.blockUsers || []).map((u) => String(u).trim()).filter(Boolean);
-    const read = settings.dimRead || settings.hideRead ? readMap() : {};
-
-    let hiddenRead = 0;
-    let hiddenBlocked = 0;
-    let total = 0;
-
-    document.querySelectorAll('.bbs-home__content-item').forEach((card) => {
-      total += 1;
-      const id = postIdOf(card);
-      if (id && read[id]) card.dataset.xhhRead = '1';
-      else delete card.dataset.xhhRead;
-
-      if (!settings.on) {
-        delete card.dataset.xhhBlocked;
-        return;
+  /* 增量扫描：只处理新出现的节点，翻页时每张卡 O(1) */
+  function scanNodes(nodes) {
+    if (!settings.on && !settings.dimRead) {
+      updateEmptyNote();
+      return;
+    }
+    const cards = new Set();
+    for (const node of nodes) {
+      if (node.nodeType !== 1) continue;
+      if (node.matches?.(CARD_SEL)) cards.add(node);
+      else {
+        node.querySelectorAll?.(CARD_SEL).forEach((c) => cards.add(c));
+        // 卡片内部的内容变化：重新评估它所属的那张卡
+        const owner = node.closest?.(CARD_SEL);
+        if (owner) cards.add(owner);
       }
+    }
+    if (!cards.size) {
+      updateEmptyNote();
+      return;
+    }
+    cards.forEach(applyCard);
+    updateEmptyNote();
+  }
 
-      const title = text(card.querySelector('.bbs-content__title'));
-      const body = text(card.querySelector('.bbs-content__content'));
-      const author = text(card.querySelector('.list-content__username'));
-
-      const hay = `${title}\n${body}`.toLowerCase();
-      const blocked =
-        users.includes(author) || words.some((w) => hay.includes(w.toLowerCase()));
-
-      if (blocked) {
-        card.dataset.xhhBlocked = '1';
-        hiddenBlocked += 1;
-      } else {
-        delete card.dataset.xhhBlocked;
-        if (settings.hideRead && id && read[id]) hiddenRead += 1;
-      }
-    });
-
-    renderEmptyNote(total, hiddenRead, hiddenBlocked);
-
+  function markDetailRead() {
     const m = location.pathname.match(/\/app\/bbs\/link\/([^/?#]+)/);
     if (m) markRead(m[1]);
   }
@@ -225,22 +284,43 @@
 
   function looksLikeAppNag(el) {
     if (!(el instanceof HTMLElement)) return false;
-    if (el.closest('#xhh-hud-host, #xhh-help-host')) return false;
+    if (el.closest('#xhh-hud-host, #xhh-help-host, #xhh-topbar-host')) return false;
+    // 先看文字：不命中关键词就根本不碰样式计算（getComputedStyle 会强制布局）
+    const t = (el.innerText || '').replace(/\s+/g, '');
+    if (!t || t.length > 60 || !NAG_RE.test(t)) return false;
     const style = getComputedStyle(el);
     if (style.position !== 'fixed') return false;
     const rect = el.getBoundingClientRect();
     if (rect.width > 640 || rect.height > 300 || rect.width < 80) return false;
-    const t = (el.innerText || '').replace(/\s+/g, '');
-    if (!t || t.length > 60) return false;
-    if (!/下载|打开APP|打开App|扫码/.test(t)) return false;
     return true;
   }
 
-  function sweepNags(scope) {
-    const nodes = scope ? scope.querySelectorAll('*') : document.querySelectorAll('div');
-    nodes.forEach((el) => {
+  /* 浅层扫：只看 body 的两层子代。推广浮层是页面级元素，不会埋在卡片深处，
+     全表 querySelectorAll('div') 是纯浪费 */
+  function sweepNags() {
+    const body = document.body;
+    if (!body) return;
+    const check = (el) => {
+      if (el.classList.contains('xhh-kill')) return;
       if (looksLikeAppNag(el)) el.classList.add('xhh-kill');
-    });
+    };
+    for (const el of body.children) {
+      check(el);
+      if (!el.children.length) continue;
+      for (const child of el.children) check(child);
+    }
+  }
+
+  /* 新节点进来时：只检查它本身和它的直属子代，不深挖 */
+  function checkNag(node) {
+    if (looksLikeAppNag(node)) {
+      node.classList.add('xhh-kill');
+      return;
+    }
+    if (!node.firstElementChild) return;
+    for (const child of node.children) {
+      if (looksLikeAppNag(child)) child.classList.add('xhh-kill');
+    }
   }
 
   /* ------------------------------------------------------------ 轻提示 */
@@ -311,26 +391,73 @@
         .spacer{flex:1}
         button{
           border:0;background:transparent;color:inherit;cursor:pointer;
-          width:30px;height:30px;border-radius:8px;font-size:14px;line-height:1;
+          width:30px;height:30px;border-radius:8px;
           display:flex;align-items:center;justify-content:center;transition:background .14s ease;
         }
         button:hover{background:rgba(128,128,128,.14)}
+        button:active{background:rgba(128,128,128,.22)}
         button:focus-visible{outline:2px solid var(--xhh-accent,#ff5f4d);outline-offset:2px}
+        svg{width:16px;height:16px;display:block}
         .hint{font-size:11px;opacity:.55;user-select:none;margin-right:8px}
       </style>
       <div class="bar" role="toolbar" aria-label="清净模式控制">
         <span class="brand"><span class="dot"></span>清净</span>
         <span class="spacer"></span>
-        <button data-k="theme" title="夜间 / 日间" aria-label="切换夜间或日间主题">🌙</button>
-        <button data-k="focus" title="回原版 / 开启清净" aria-label="开启或关闭清净模式">⏻</button>
+        <button data-k="top" title="回到顶部" aria-label="回到顶部">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 12.5V3.8M3.9 7.6 8 3.5l4.1 4.1"/>
+          </svg>
+        </button>
+        <button data-k="reload" title="刷新页面" aria-label="刷新页面">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.75"/>
+            <path d="M13.4 2.3v2.9h-2.9"/>
+          </svg>
+        </button>
+        <button data-k="theme" title="夜间 / 日间" aria-label="切换夜间或日间主题">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13.4 9.6A5.6 5.6 0 0 1 6.4 2.6a5.7 5.7 0 1 0 7 7Z"/>
+          </svg>
+        </button>
+        <button data-k="focus" title="回原版 / 开启清净" aria-label="开启或关闭清净模式">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 1.8v6M4.4 3.9a5.2 5.2 0 1 0 7.2 0"/>
+          </svg>
+        </button>
       </div>`;
     shadow.querySelectorAll('button').forEach((btn) => {
       btn.addEventListener('click', () => {
-        if (btn.dataset.k === 'theme') toggleThemeMode();
-        if (btn.dataset.k === 'focus') toggleFocusMode();
+        const k = btn.dataset.k;
+        if (k === 'theme') toggleThemeMode();
+        if (k === 'focus') toggleFocusMode();
+        if (k === 'top') scrollTop();
+        if (k === 'reload') reloadPage();
       });
     });
     (document.documentElement || document.body).appendChild(topbarHost);
+  }
+
+  /* 瀑布流翻久了要重开一局：先回到顶部再刷新，回来就是第一屏 */
+  let reloading = false;
+
+  function reloadPage() {
+    if (reloading) return;
+    reloading = true;
+    toast('刷新中…');
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } catch (_) {
+      window.scrollTo(0, 0);
+    }
+    setTimeout(() => location.reload(), 60);
+  }
+
+  function scrollTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /* ------------------------------------------------------------ 事件 */
@@ -413,14 +540,23 @@
 
   /* ------------------------------------------------------------ 启动 */
 
-  let scanPending = false;
-  function scheduleScan() {
-    if (scanPending) return;
-    scanPending = true;
-    setTimeout(() => {
-      scanPending = false;
-      scan();
-    }, 120);
+  /* 观察者回调只负责收集，真正的处理合并成一次 rAF：
+     一帧内插进来 20 张卡也只跑一轮，主线程不再被翻页切碎 */
+  let pendingNodes = [];
+  let flushScheduled = false;
+
+  function flushPending() {
+    flushScheduled = false;
+    const nodes = pendingNodes;
+    pendingNodes = [];
+    if (!nodes.length) return;
+    scanNodes(nodes);
+  }
+
+  function scheduleFlush() {
+    if (flushScheduled) return;
+    flushScheduled = true;
+    requestAnimationFrame(flushPending);
   }
 
   function init() {
@@ -433,20 +569,13 @@
 
     const observer = new MutationObserver((records) => {
       for (const record of records) {
-        record.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) {
-            if (node.classList?.contains('bbs-home__content-item')) {
-              const id = postIdOf(node);
-              if (id && readMap()[id]) node.dataset.xhhRead = '1';
-            }
-            if (settings.on) {
-              if (looksLikeAppNag(node)) node.classList.add('xhh-kill');
-              else if (node.querySelector) sweepNags(node);
-            }
-          }
-        });
+        for (const node of record.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          pendingNodes.push(node);
+          if (settings.on && !node.classList?.contains('xhh-kill')) checkNag(node);
+        }
       }
-      scheduleScan();
+      if (pendingNodes.length) scheduleFlush();
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
 
