@@ -397,6 +397,7 @@ html.xhh-on {
   --xhh-topbar-bg: rgba(255, 255, 255, 0.96);
   --xhh-topbar-fg: #2b2f34;
   --xhh-topbar-line: rgba(16, 24, 40, 0.07);
+  --xhh-topbar-fade: rgba(255, 255, 255, 0);
 }
 
 html.xhh-on[data-xhh-theme="dark"] {
@@ -406,6 +407,7 @@ html.xhh-on[data-xhh-theme="dark"] {
   --xhh-topbar-bg: rgba(18, 20, 24, 0.97);
   --xhh-topbar-fg: #e3e6ea;
   --xhh-topbar-line: rgba(255, 255, 255, 0.08);
+  --xhh-topbar-fade: rgba(14, 16, 19, 0);
 }
 
 html.xhh-on[data-xhh-theme="sepia"] {
@@ -415,6 +417,7 @@ html.xhh-on[data-xhh-theme="sepia"] {
   --xhh-topbar-bg: rgba(238, 231, 216, 0.97);
   --xhh-topbar-fg: #3b342a;
   --xhh-topbar-line: rgba(90, 74, 50, 0.14);
+  --xhh-topbar-fade: rgba(238, 231, 216, 0);
 }
 
 /* 底板透明，让卡片自己当主角 */
@@ -476,13 +479,23 @@ html.xhh-on:not(.xhh-hide-topics) .bbs-home__topic-list-wrapper {
   box-shadow: 0 1px 2px var(--xhh-card-line) !important;
 }
 
-/* 顶栏让位 + 呼吸空间 */
+/* 顶栏让位 + 呼吸空间
+   顶栏 44px + 下沿渐隐 20px = 64px 遮挡区，再留 12px 呼吸，所以是 76px。
+   不给够的话，第一张卡的上圆角和作者行会被浮层压住，看起来像被裁掉一截 */
 html.xhh-on.xhh-hide-nav #page-bbs-community {
-  padding-top: 62px !important;
+  padding-top: 76px !important;
 }
 
+html.xhh-on.xhh-hide-nav #page-bbs-link {
+  padding-top: 76px !important;
+}
+
+/* 搜索框自身吸在顶栏下沿；它和下面的 .content 是兄弟，
+   padding 必须加在 section 上（撑出顶栏高度），间距加在 .content 上，
+   否则搜索框的 sticky 参照物被撑开，永远吸不到 44px */
 html.xhh-on.xhh-hide-nav .bbs-community__search-module {
   top: 44px !important;
+  z-index: 21 !important;
 }
 
 /* 详情页：文章卡 + 评论卡 */
@@ -563,7 +576,7 @@ html.xhh-on:not(.xhh-hide-sidebar) .cpt-right-side {
   width: 340px !important;
   flex: 0 0 340px !important;
   position: sticky !important;
-  top: 62px !important;
+  top: 64px !important;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
 }
@@ -575,7 +588,12 @@ html.xhh-on:not(.xhh-hide-sidebar) .right-side-default {
   box-shadow: 0 1px 2px var(--xhh-card-line) !important;
 }
 
-/* 搜索框开着时：贴在顶栏下面，不顶到最顶 */
+/* 搜索框开着时：section 只留顶栏高度，搜索条紧贴其下；
+   内容让开搜索条（42px）+ 12px 呼吸 */
 html.xhh-on.xhh-hide-nav:not(.xhh-hide-search) #page-bbs-community {
-  padding-top: 62px !important;
+  padding-top: 44px !important;
+}
+
+html.xhh-on.xhh-hide-nav:not(.xhh-hide-search) #page-bbs-community > .content {
+  padding-top: 16px !important;
 }

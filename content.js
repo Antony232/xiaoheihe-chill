@@ -376,6 +376,18 @@
     shadow.innerHTML = `
       <style>
         :host{all:initial}
+        /* 顶栏是浮层，内容会从它下面滚过去。
+           只在紧贴顶栏下沿留一道 12px 的渐隐，把「硬切」化成「淡出」。
+           别做太长：遮罩会盖在卡片图片上，太长就是给内容蒙一层灰纱 */
+        .fade{
+          position:fixed;top:44px;left:0;right:0;height:12px;
+          z-index:2147482999;pointer-events:none;
+          background:linear-gradient(
+            to bottom,
+            var(--xhh-topbar-bg, rgba(255,255,255,.96)) 0,
+            var(--xhh-topbar-fade, rgba(255,255,255,0)) 100%
+          );
+        }
         .bar{
           position:fixed;top:0;left:0;right:0;height:44px;z-index:2147483000;
           display:flex;align-items:center;gap:6px;padding:0 22px;
@@ -400,6 +412,7 @@
         svg{width:16px;height:16px;display:block}
         .hint{font-size:11px;opacity:.55;user-select:none;margin-right:8px}
       </style>
+      <div class="fade" aria-hidden="true"></div>
       <div class="bar" role="toolbar" aria-label="清净模式控制">
         <span class="brand"><span class="dot"></span>清净</span>
         <span class="spacer"></span>
